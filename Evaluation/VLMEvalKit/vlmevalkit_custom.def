@@ -1,0 +1,21 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/eval-factory/vlmevalkit:latest
+
+%post
+    # 设置代理
+    export http_proxy=http://proxy.nhr.fau.de:80
+    export https_proxy=http://proxy.nhr.fau.de:80
+    
+    # 安装 vllm 和相关依赖（包括 flash-attn）
+    pip install --no-cache-dir vllm qwen-vl-utils validators soxr
+    
+    # 验证安装
+    python -c "import vllm; print(f'vllm: {vllm.__version__}')"
+    python -c "import flash_attn; print(f'flash_attn: {flash_attn.__version__}')"
+
+%environment
+    export LC_ALL=C
+    export LANG=C
+
+%runscript
+    exec python "$@"

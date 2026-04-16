@@ -1,0 +1,48 @@
+# Light runtime requirements for running VLMEvalKit evaluation inside a prebuilt vLLM container.
+#
+# Goals:
+# - DO NOT touch heavy, ABI-sensitive stacks: torch / torchvision / transformers / vllm / triton.
+# - Only install common pure-Python (or widely-available wheels) dependencies needed by VLMEvalKit.
+# - Keep it minimal but practical for Qwen3VLChat / video benchmarks.
+#
+# NOTE:
+# - We intentionally use opencv-python-headless to avoid X11 dependencies on HPC nodes.
+
+accelerate
+dotenv
+datasets
+einops
+# transformers==4.57.1 in NVIDIA vLLM container requires huggingface-hub < 1.0
+huggingface_hub>=0.34.0,<1.0
+imageio
+ipdb
+matplotlib
+json_repair
+nltk
+omegaconf
+opencv-python-headless>=4.11.0,<4.12.0
+openpyxl
+pandas
+pillow
+portalocker
+protobuf
+python-dotenv
+qwen_vl_utils
+requests
+rich
+sentencepiece
+setuptools
+sty
+sympy
+tabulate
+tiktoken
+timeout-decorator
+tqdm
+typing_extensions
+validators
+xlsxwriter
+
+# video decoding
+decord>=0.6.0
+av
+soxr

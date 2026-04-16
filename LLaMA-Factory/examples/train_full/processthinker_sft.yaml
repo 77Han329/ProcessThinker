@@ -1,0 +1,66 @@
+### model
+model_name_or_path: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/models/Qwen3-VL-8B-Instruct
+image_max_pixels: 802816
+video_max_pixels: 100352
+video_maxlen: 128
+video_fps: 2
+trust_remote_code: true
+add_tokens: "<step>,</step>"
+
+
+
+### method
+stage: sft
+do_train: true
+finetuning_type: full
+# finetuning_type: lora
+# lora_rank: 64
+freeze_vision_tower: true  # choices: [true, false]
+freeze_multi_modal_projector: true  # choices: [true, false]
+deepspeed: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/examples/deepspeed/ds_z3_config.json
+
+### dataset
+dataset: process_thinker_step_cot_70k
+template: qwen3_vl  # use ReasoningTemplate to automatically add the <think> prefix
+dataset_dir: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/data
+use_fast_tokenizer: false
+cutoff_len: 8192
+overwrite_cache: false
+preprocessing_num_workers: 16
+preprocessing_batch_size: 32
+max_samples: 1000000
+tokenized_path: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/new_cache/process_thinker_step_cot_70k_with_sysprompt_tokenized
+media_dir: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/data/train_data/Processthinker_videos/
+
+### output
+output_dir: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/new_ckpts/processthinker_sft_70k
+logging_steps: 1
+save_strategy: steps
+save_steps: 100
+save_only_model: false
+plot_loss: true
+overwrite_output_dir: true  # keep existing checkpoints
+save_total_limit: 30
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 1.0e-5
+weight_decay: 1.0e-6
+num_train_epochs: 1.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.02
+bf16: true
+ddp_timeout: 180000000
+flash_attn: fa2
+
+### eval
+# val_size: 0.1
+# per_device_eval_batch_size: 1
+# eval_strategy: steps
+# eval_steps: 500
+
+# report_to: wandb
+# run_name: sft_cold_start_8b_step # optional
+
+report_to: none

@@ -1,0 +1,143 @@
+data:
+  train_files: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/data/train_data/processthinker_rl_10k.json
+  val_files: ""
+  prompt_key: problem
+  answer_key: solution
+  image_key: images
+  video_key: videos
+  image_dir: null
+  video_fps: 2.0
+  max_prompt_length: 16384
+  max_response_length: 4096
+  rollout_batch_size: 48  # equivalent to verl's data.train_batch_size (6 GPUs: must be a multiple of 6)
+  mini_rollout_batch_size: null  # equivalent to verl's data.gen_batch_size
+  val_batch_size: 1024
+  format_prompt: null
+  override_chat_template: null
+  shuffle: true
+  seed: 1
+  min_pixels: 3136
+  max_pixels: 1048576
+  filter_overlong_prompts: false
+
+algorithm:
+  adv_estimator: grpo
+  disable_kl: true
+  use_kl_loss: true
+  kl_penalty: low_var_kl
+  kl_coef: 1.0e-2
+  online_filtering: false  # disabled for now to avoid filtering out all samples
+  filter_key: accuracy
+  filter_low: 0.0
+  filter_high: 1.0
+
+worker:
+  actor:
+    global_batch_size: 48  # equivalent to verl's actor.ppo_mini_batch_size (6 GPUs: must be a multiple of 6)
+    micro_batch_size_per_device_for_update: 1  # equivalent to verl's actor.ppo_micro_batch_size_per_gpu
+    micro_batch_size_per_device_for_experience: 2  # equivalent to verl's rollout.log_prob_micro_batch_size_per_gpu
+    max_grad_norm: 1.0
+    padding_free: true
+    dynamic_batching: true
+    ulysses_size: 1
+    model:
+      model_path: "/hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/models/Processthinker_SFT_8B"
+      # model_path: "/hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/models/Qwen3-VL-2B-Instruct"
+      enable_gradient_checkpointing: true
+      trust_remote_code: false
+      freeze_vision_tower: false
+    optim:
+      lr: 5.0e-6
+      weight_decay: 1.0e-2
+      strategy: adamw  # {adamw, adamw_bf16}
+      lr_warmup_ratio: 0.0
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: false
+      enable_rank0_init: true
+    offload:
+      offload_params: false  # true: more CPU memory; false: more GPU memory
+      offload_optimizer: false  # true: more CPU memory; false: more GPU memory
+
+  rollout:
+    n: 8 # GRPO needs multiple responses to compute the relative advantage
+    temperature: 1.0
+    top_p: 1.0
+    limit_images: 0
+    gpu_memory_utilization: 0.5
+    enforce_eager: false
+    enable_chunked_prefill: true
+    tensor_parallel_size: 1   # 4-GPU training, each GPU runs its own vLLM rollout
+    disable_tqdm: true
+    max_num_batched_tokens: 20736
+    val_override_config:
+      temperature: 0.7
+      top_p: 0.95
+      n: 1
+
+  ref:
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: false  # true: more CPU memory; false: more GPU memory
+      enable_rank0_init: true
+    offload:
+      offload_params: false
+
+  reward:
+    reward_type: batch
+    reward_function: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/EasyR1/verl/reward_function/processthinker_reward.py:compute_score
+    reward_function_kwargs:
+      # ==================== R1: Format Reward parameters ====================
+      step_min: 2           # minimum number of steps
+      step_max: 6           # maximum number of steps
+      l_min: 280            # minimum response token count
+      l_max: 450            # maximum response token count
+      r1_value: 0.5         # r1 value when the format is correct
+      beta_value: 0.5       # beta value when the length is within range
+
+      # ==================== Penalty: behavior on format violation ====================
+      penalty: true         # true: return -2.5 on format error; false: return 0
+
+      # ==================== Step Bonus parameters ====================
+      use_step_bonus: true  # whether to enable the step bonus
+      alpha: 0.5            # step bonus scale: step_bonus = alpha * sqrt((step-step_min)/(step_max-step_min))
+
+      # ==================== R2: acc_weight + cot_weight = 1 ====================
+      # Best paper config (process-only): acc_weight=0.0, cot_weight=1.0
+      # outcome-only baseline:            acc_weight=1.0, cot_weight=0.0
+      # balanced mixture:                 acc_weight=0.5, cot_weight=0.5
+      acc_weight: 0.0       # lambda_acc in Eq. (6): accuracy (outcome) reward weight [0, 1]
+      cot_weight: 1.0       # lambda_proc in Eq. (6): rollout-based process reward weight [0, 1]
+
+      # ==================== COT / Process Reward parameters (used when cot_weight > 0) ====================
+      process_model_endpoint: "http://127.0.0.1:8000/v1/chat/completions"  # vLLM server address
+      process_model_name: "qwen"       # the name set via --served-model-name when launching vLLM
+      process_n: 4                     # number of continuations sampled per step
+      process_max_steps: 6             # maximum number of steps to score
+      process_max_tokens: 2048         # max tokens for each continuation
+      process_temperature: 1.0         # sampling temperature
+      process_top_p: 1.0               # top-p sampling
+      process_timeout: 60.0            # request timeout
+      process_media_format: "openai"   # multimodal payload format
+      process_use_prefill: true        # whether to use the vLLM prefill feature
+
+trainer:
+  total_epochs: 1
+  max_steps: null
+  project_name: easy_r1
+  experiment_name: pg_rl
+  # logger: ["file", "wandb"]
+  logger: ["file"]
+  nnodes: 1           # treat the Ray cluster as a single logical node
+  n_gpus_per_node: 6  # train on 6 GPUs (Node0: 2 + Node1: 4)
+  max_try_make_batch: 20  # -1 means no limit
+  val_freq: -1  # -1 to disable
+  val_before_train: false
+  val_only: false
+  val_generations_to_log: 3
+  save_freq: 200  # -1 to disable
+  save_limit: 100000  # -1 means no limit
+  save_model_only: false
+  save_checkpoint_path: checkpoints_v1/pg-rl
+  load_checkpoint_path: null
+  find_last_checkpoint: true
