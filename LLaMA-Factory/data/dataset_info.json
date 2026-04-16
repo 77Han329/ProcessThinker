@@ -1,21 +1,6 @@
 {
-  "process_thinker_step_cot_70k": {
-    "file_name": "train_data/processthinker_step_cot_70k.json",
-    "formatting": "sharegpt",
-    "columns": {
-      "messages": "messages",
-      "videos": "videos"
-    },
-    "tags": {
-      "role_tag": "role",
-      "content_tag": "content",
-      "user_tag": "user",
-      "assistant_tag": "assistant"
-    },
-    "system_prompt": "Please answer this question based on the visual content. Provide your step-by-step thinking process between the <think> and </think> tags, using <step>...</step> for each step as much as needed. Then give your final answer between the <answer> and </answer> tags. At the end, you must output the final answer in the format: <answer><your_answer_here></answer>, Please provide only the single option letter (e.g., A, B, C, D, etc.) within the <answer>...</answer> tags. Example: <answer>A</answer>"
-  },
   "sft_step_video_mc_18k": {
-    "file_name": "train_data/sft_video_mc_step_18k.json",
+    "file_name": "train_data/sft_video_mc_step_19k.json",
     "formatting": "sharegpt",
     "columns": {
       "messages": "messages",
