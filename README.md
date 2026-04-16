@@ -5,7 +5,11 @@
 
 ProcessThinker is a practical post-training pipeline that provides **step-level process rewards without training a separate PRM**. For each intermediate step in a chain-of-thought trace, we sample several continuations from the current policy and use the **empirical success rate** (final-answer verification) as the step reward. Combined with lightweight formatting constraints, this dense signal is plugged directly into GRPO and consistently improves Qwen3-VL-8B-Instruct on video reasoning benchmarks.
 
-📄 **Pipeline figure:** [`assets/pipeline.png`](assets/pipeline.png) — rollout-based process reward inside one GRPO update. For a question Q, π<sup>SFT</sup><sub>θ</sub> samples n responses o<sub>1</sub>…o<sub>n</sub>. For each response we extract step segments {s<sub>1</sub>, …, s<sub>m</sub>} and score each step k by the success rate of M continuation rollouts from prefix (s<sub>1</sub>, …, s<sub>k</sub>), producing step scores c<sub>k</sub> and the averaged CoT score. The final reward combines the format reward, CoT reward, and a bounded step-count bonus/penalty, then feeds into GRPO's group-relative advantage Â.
+<p align="center">
+  <img src="assets/pipeline.png" alt="ProcessThinker pipeline" width="100%">
+</p>
+
+**Pipeline.** Rollout-based process reward inside one GRPO update. For a question Q, π<sup>SFT</sup><sub>θ</sub> samples n responses o<sub>1</sub>…o<sub>n</sub>. For each response we extract step segments {s<sub>1</sub>, …, s<sub>m</sub>} and score each step k by the success rate of M continuation rollouts from prefix (s<sub>1</sub>, …, s<sub>k</sub>), producing step scores c<sub>k</sub> and the averaged CoT score. The final reward combines the format reward, CoT reward, and a bounded step-count bonus/penalty, then feeds into GRPO's group-relative advantage Â.
 
 ---
 
