@@ -28,20 +28,6 @@
       "assistant_tag": "assistant"
     }
   },
-  "processthinker_sft_image": {
-    "file_name": "processthinker_sft_image.json",
-    "formatting": "sharegpt",
-    "columns": {
-      "messages": "messages",
-      "images": "images"
-    },
-    "tags": {
-      "role_tag": "role",
-      "content_tag": "content",
-      "user_tag": "user",
-      "assistant_tag": "assistant"
-    }
-  },
   "processthinker_sft_video": {
     "file_name": "processthinker_sft_video.json",
     "formatting": "sharegpt",

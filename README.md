@@ -46,7 +46,7 @@ All variants share the same SFT warm-up; **process-only** (`λ_acc=0, λ_proc=1`
 ├── LLaMA-Factory/                    # Stage 1 — SFT cold start
 ├── EasyR1/                           # Stage 2 — GRPO with process reward
 │   └── verl/reward_function/processthinker_reward.py   # ← rollout-based process reward
-├── Evaluation/                       # VLMEvalKit + single-example inference
+├── Evaluation/                       # VLMEvalKit launcher
 └── assets/
 ```
 
@@ -70,13 +70,12 @@ See upstream [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) and [Easy
 
 ## 🔍 Data
 
-Two step-tagged SFT splits (registered in `LLaMA-Factory/data/dataset_info.json`):
+Two step-tagged splits, both video-only:
 
-| Dataset key | Modality | Purpose |
-|---|---|---|
-| `processthinker_sft_image` | image | SFT cold start (image samples) |
-| `processthinker_sft_video` | video | SFT cold start (video samples) |
-| `processthinker_rl_1250.json` | mixed | GRPO prompts |
+| Split | Size | Purpose |
+|---|---:|---|
+| `processthinker_sft_video` | **19k** | SFT cold start (registered in `LLaMA-Factory/data/dataset_info.json`) |
+| `processthinker_rl_1250.json` | **1.25k** | GRPO prompts |
 
 Derived from [VIDEO-R1-COT-165K](https://github.com/tulerfeng/Video-R1), rewritten into the `<step>` format by Qwen3-VL-30B-A3B-Instruct and filtered for answer fidelity, step–answer consistency, and step quality. Rewriting/filtering scripts are not part of this release.
 
@@ -110,9 +109,6 @@ Key knobs in `EasyR1/examples/config_processthinker_grpo.yaml`: `acc_weight` (λ
 ```bash
 # Four paper benchmarks via VLMEvalKit
 bash Evaluation/VLMEvalKit/local_scripts/eval_vlmevalkit.sh
-
-# Single-example inference (edit CHECKPOINT_PATH / MEDIA_PATH at the top)
-python Evaluation/inference_single/inference.py
 ```
 
 The shipped script also runs other benchmarks for completeness; only Video-MMMU, MMVU, VideoMathQA, and LongVideoBench are reported in the paper.

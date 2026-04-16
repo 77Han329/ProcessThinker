@@ -20,7 +20,7 @@ freeze_multi_modal_projector: true  # choices: [true, false]
 deepspeed: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/examples/deepspeed/ds_z3_config.json
 
 ### dataset
-dataset: processthinker_sft_image,processthinker_sft_video
+dataset: processthinker_sft_video
 template: qwen3_vl  # use ReasoningTemplate to automatically add the <think> prefix
 dataset_dir: /hnvme/workspace/v100dd13-reasoning_model/Processthinker/LLaMA-Factory/data
 use_fast_tokenizer: false
