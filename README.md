@@ -1,6 +1,6 @@
 # ProcessThinker: Enhancing Multimodal LLM Reasoning via Rollout-based Process Reward
 
-> Under review at ICLR 2026.
+> ICLR 2026 Workshop on Logical Reasoning of Large Language Models.
 
 ProcessThinker provides **step-level process rewards without training a separate PRM**: for each intermediate step we sample several continuations from the current policy and use the empirical answer success rate as the step reward. Plugged into GRPO, it consistently improves Qwen3-VL-8B-Instruct on video reasoning.
 
